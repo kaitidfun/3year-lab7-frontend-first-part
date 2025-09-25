@@ -10,6 +10,9 @@ import NetworkErrorView from '@/views/NetworkErrorView.vue'
 import nProgress from 'nprogress'
 import EventService from '@/services/EventService'
 import { useEventStore } from '@/stores/event'
+import AddEventView from '@/views/EventFormView.vue'
+import OrganizationFormView from '@/views/OrganizationFormView.vue'
+import OrganizationDetailView from '@/views/OrganizationDetailView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -74,6 +77,22 @@ const router = createRouter({
       path: '/about',
       name: 'about',
       component: AboutView
+    },
+    {
+      path: '/add-event',
+      name: 'add-event',
+      component: AddEventView
+    },
+    {
+      path: '/add-organization',
+      name: 'add-organization',
+      component: OrganizationFormView
+    },
+    {
+      path: '/organizers/:id',
+      name: 'organizer-detail-view',
+      component: OrganizationDetailView,
+      props: true
     },
     {
       path: '/404/:resource',
