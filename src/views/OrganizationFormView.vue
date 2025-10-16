@@ -1,45 +1,59 @@
 <script setup lang="ts">
-import type { Organization } from '@/types'
 import { ref } from 'vue'
-import OrganizationService from '@/services/OrganizationService'
-import { useRouter } from 'vue-router'
-import { useMessageStore } from '@/stores/message'
-
-const organization = ref<Organization>({
-  organizationName: '',
-  address: ''
-})
+import { useRouter, useRoute } from 'vue-router'
+import OrganizerService from '@/services/OrganizerService'
+import type { Organizer } from '@/types'
 
 const router = useRouter()
-const store = useMessageStore()
+const route = useRoute()
 
-function saveOrganization() {
-  OrganizationService.saveOrganization(organization.value)
-    .then((response) => {
-      // หลังบันทึกเสร็จ redirect ไปหน้า detail หรือ list
-      router.push({ name: 'organizer-detail-view', params: { id: response.data.id } })
-      store.updateMessage('You have successfully added a new organization: ' + response.data.organizationName)
-      setTimeout(() => { store.resetMessage() }, 3000)
-    })
-    .catch(() => {
-      router.push({ name: 'network-error-view' })
-    })
+const isEdit = route.params.id !== undefined
+const form = ref<Organizer>({
+  id: 0,
+  name: ''
+})
+
+if (isEdit) {
+  const id = Number(route.params.id)
+  OrganizerService.getOrganizer(id).then(res => {
+    form.value = res.data
+  })
+}
+
+async function onSubmit() {
+  if (!form.value.name.trim()) return
+
+  if (isEdit) {
+    const id = Number(route.params.id)
+    await OrganizerService.updateOrganizer(id, { name: form.value.name.trim() })
+    router.push({ name: 'organization-detail', params: { id } })
+  } else {
+    const { data } = await OrganizerService.createOrganizer({ name: form.value.name.trim() })
+    router.push({ name: 'organization-detail', params: { id: data.id } })
+  }
 }
 </script>
 
 <template>
-  <div>
-    <h1>Create an organization</h1>
-    <form @submit.prevent="saveOrganization">
-      <label>Organization Name</label>
-      <input v-model="organization.organizationName" type="text" placeholder="Organization Name" class="field" />
+  <div class="max-w-md mx-auto space-y-4">
+    <h2 class="text-2xl font-semibold">
+      {{ isEdit ? 'Edit Organizer' : 'New Organizer' }}
+    </h2>
 
-      <label>Address</label>
-      <input v-model="organization.address" type="text" placeholder="Address" class="field" />
+    <label class="block text-sm font-medium">Organizer Name</label>
+    <input
+      v-model="form.name"
+      type="text"
+      class="w-full border rounded p-2"
+      placeholder="Enter organizer name"
+    />
 
-      <button class="button" type="submit">Submit</button>
-    </form>
-
-    <pre>{{ organization }}</pre>
+    <button
+      class="mt-3 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+      type="button"
+      @click="onSubmit"
+    >
+      {{ isEdit ? 'Save' : 'Create' }}
+    </button>
   </div>
 </template>

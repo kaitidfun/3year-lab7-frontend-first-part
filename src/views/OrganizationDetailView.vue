@@ -1,32 +1,26 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import OrganizationService from '@/services/OrganizationService'
-import type { Organization } from '@/types'
+import { useRoute } from 'vue-router'
+import OrganizerService from '@/services/OrganizerService'
+import type { Organizer } from '@/types'
 
 const route = useRoute()
-const router = useRouter()
-const organization = ref<Organization | null>(null)
+const organizer = ref<Organizer | null>(null)
 
-onMounted(() => {
+onMounted(async () => {
   const id = Number(route.params.id)
-  OrganizationService.getOrganization(id)
-    .then(res => { organization.value = res.data })
-    .catch(err => {
-      if (err.response?.status === 404) {
-        router.push({ name: '404-resource-view', params: { resource: 'organization' } })
-      } else {
-        router.push({ name: 'network-error-view' })
-      }
-    })
+  const { data } = await OrganizerService.getOrganizer(id)
+  organizer.value = data
 })
 </script>
 
 <template>
-  <div v-if="organization">
-    <p>{{ organization.organizationName }} @ {{ organization.address }}</p>
-  </div>
-  <div v-else>
-    <!-- loading state (ถ้าต้องการ) -->
+  <div class="max-w-2xl mx-auto text-center space-y-3">
+    <h1 class="text-3xl font-semibold">Organizer Detail</h1>
+
+    <div v-if="organizer">
+      <p class="text-xl font-medium">Name: {{ organizer.name }}</p>
+    </div>
+    <div v-else>Loading...</div>
   </div>
 </template>
